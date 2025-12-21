@@ -7,13 +7,16 @@ import { ShareStack } from "../../../components/rewards/ShareStack";
 import { ReferAndEarn } from "../../../components/rewards/ReferAndEarn";
 
 export const EarnPoint = () => {
+  const handleClaim = () => {
+console.log("Claimed")
+  }
   return (
     <div className="flex flex-col">
       <div className="mt-4 flex flex-col">
         <Subheading h2="Your Rewards Journey" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <PointsBalanceCard balance={50} />
-          <DailyStreakCard />
+          <DailyStreakCard currentStreak={2} lastClaimDate={"20/10/2025"} onClaim={()=>handleClaim} />
           <TopSpotlightTool />
         </div>
       </div>

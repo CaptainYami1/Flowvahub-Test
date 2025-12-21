@@ -5,7 +5,7 @@ import { Zap } from 'lucide-react';
 
 interface DailyStreakCardProps {
   currentStreak: number;
-  weekClaims: string[];
+  // weekClaims: string[];
   lastClaimDate: string | null;
   onClaim: () => void;
 }
