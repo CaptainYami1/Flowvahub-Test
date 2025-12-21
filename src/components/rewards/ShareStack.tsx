@@ -9,7 +9,7 @@ export function ShareStack() {
           <Share2 />
         </div>
         <div>
-          <h3 className="font-semibold">Share Your Stack</h3>
+          <h3 className="font-semibold text-sm">Share Your Stack</h3>
           <p className="text-xs text-gray-500">Earn +25 pts</p>
         </div>
       </CardHeader>
