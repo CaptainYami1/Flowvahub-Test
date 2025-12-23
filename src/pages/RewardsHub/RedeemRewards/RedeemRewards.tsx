@@ -2,10 +2,14 @@ import { useState } from "react";
 import { Tab } from "../../../components/ui/tab";
 import { Subheading } from "../../../components/ui/subheading";
 import { Redeemables } from "../../../components/rewards/Redeemables";
+import { usePointBalance } from "../../../hooks/usePointBalance";
+import supabase from "../../../services/config";
+import { toast } from "react-toastify";
 
 export const RedeemRewards = () => {
+  const { pointBalance, updateBalance } = usePointBalance();
   const tabs = ["All Rewards", "Unlocked", "Locked", "Coming soon"];
-const balance = 5;
+  const balance = pointBalance ?? 0;
   const redeemablesItems = [
     {
       icon: "💸",
@@ -76,7 +80,21 @@ const balance = 5;
       return redeemablesItems.filter((i) => i.points === 0);
     return redeemablesItems;
   };
-  
+
+  const handleRedeem = async (item: any) => {
+  if (item.description === "Coming Soon!" || item.points > balance) return;
+  const { error } = await supabase.from("redeemed").insert({
+    item_name: item.name,
+    point: item.points,
+  });
+  if (error) {
+    toast.error("Unable to claim reward");
+    console.log(error);
+    return;
+  }
+  updateBalance(-item.points);
+  toast.success(`Successfully redeemed ${item.name}`);
+};
 
   return (
     <>
@@ -105,8 +123,8 @@ const balance = 5;
               name={item.name}
               description={item.descriprion}
               point={item.points}
-              disabled={balance < item.points }
-              redeem= {balance >= item.points && item.points !== 0}
+              disabled={balance < item.points || item.descriprion === "Coming Soon!"}
+              redeem={balance >= item.points && item.points !== 0}
               button={
                 item.points > balance
                   ? "Locked"
@@ -114,7 +132,7 @@ const balance = 5;
                   ? "Coming Soon"
                   : "Redeem"
               }
-              onClick={()=> console.log(item.name)}
+              onClick={() => handleRedeem(item)}
             />
           ))}
         </div>

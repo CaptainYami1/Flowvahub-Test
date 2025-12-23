@@ -5,18 +5,25 @@ import { TopSpotlightTool } from "../../../components/rewards/TopSpotlightTool";
 import { ReferAndWin } from "../../../components/rewards/ReferAndWin";
 import { ShareStack } from "../../../components/rewards/ShareStack";
 import { ReferAndEarn } from "../../../components/rewards/ReferAndEarn";
+import { usePointBalance } from "../../../hooks/usePointBalance";
 
 export const EarnPoint = () => {
-  const handleClaim = () => {
-console.log("Claimed")
-  }
+  const { pointBalance, pointBalanceError, pointBalanceLoading } =
+    usePointBalance();
+  
   return (
     <div className="flex flex-col">
       <div className="mt-4 flex flex-col">
         <Subheading h2="Your Rewards Journey" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <PointsBalanceCard balance={50} />
-          <DailyStreakCard currentStreak={2} lastClaimDate={"20/10/2025"} onClaim={()=>handleClaim} />
+          <PointsBalanceCard
+            balance={
+              pointBalanceError || pointBalanceLoading
+                ? "-"
+                : pointBalance ?? "0"
+            }
+          />
+          <DailyStreakCard />
           <TopSpotlightTool />
         </div>
       </div>

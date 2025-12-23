@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
 * {
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
 }
 
 @theme {
   --color-primary: #9013fe;
   --color-secondary: #9013fe0d;
+  --font-family-ui: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }

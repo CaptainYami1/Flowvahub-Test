@@ -1,28 +1,105 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Button from "../ui/button";
 import { cn } from "../../lib/utils";
-import { Zap } from 'lucide-react';
+import { Zap } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import supabase from "../../services/config";
+import { toast } from "react-toastify";
+import { DailyClaimSuccessModal } from "./DailyClaimSuccessModal";
+import { usePointBalance } from "../../hooks/usePointBalance";
 
-interface DailyStreakCardProps {
-  currentStreak: number;
-  // weekClaims: string[];
-  lastClaimDate: string | null;
-  onClaim: () => void;
+interface Claim {
+  claim_date: string;
 }
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export function DailyStreakCard({
-  currentStreak,
-  //   weekClaims,
-  lastClaimDate,
-  onClaim,
-}: DailyStreakCardProps) {
+export function DailyStreakCard() {
+  const [openSuccessModal, setOpenSuccessModal] = useState(false);
+  const [claims, setClaims] = useState<Claim[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { updateBalance } = usePointBalance();
   const today = new Date().toISOString().split("T")[0];
-  const canClaim = lastClaimDate !== today;
   const todayDayName = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
     new Date().getDay()
   ];
+
+  const fetchClaims = async () => {
+    setLoading(true);
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
+    const { data, error } = await supabase
+      .from("claim_days")
+      .select("claim_date")
+      .gte("claim_date", sevenDaysAgo.toISOString().split("T")[0]);
+
+    if (error) {
+      toast.error("Failed to load streak data");
+    } else {
+      setClaims(data ?? []);
+    }
+
+    setLoading(false);
+  };
+  const handleClaim = async () => {
+    if (!canClaim) return;
+    const { error } = await supabase.from("claim_days").insert({
+      claim_date: today,
+    });
+
+    if (error) {
+      toast.error("Already claimed today");
+      console.log(error);
+      fetchClaims();
+      return;
+    }
+
+    fetchClaims();
+    updateBalance(5);
+    setOpenSuccessModal(true);
+  };
+
+  useEffect(() => {
+    fetchClaims();
+  }, []);
+
+  // Check if user can claim today
+  const claimToday = claims.find((c) => {
+    const claimDate = new Date(c.claim_date).toISOString().split("T")[0];
+    return claimDate === today;
+  });
+  const canClaim = claimToday === undefined;
+  // Map claims to days of the week
+  const weekClaims = claims.map((c) => {
+    const date = new Date(c.claim_date);
+    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.getDay()];
+  });
+
+  // Calculate current streak
+  const currentStreak = (() => {
+    const dates = claims
+      .map((c) => new Date(c.claim_date))
+      .sort((a, b) => b.getTime() - a.getTime());
+    let streak = 0;
+    let lastDate = new Date(today);
+    for (let d of dates) {
+      if (
+        d.toISOString().split("T")[0] === lastDate.toISOString().split("T")[0]
+      ) {
+        streak++;
+        lastDate.setDate(lastDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  })();
+
+  const handleCloseModal = useCallback(() => {
+    setOpenSuccessModal(false);
+  }, []);
 
   return (
     <Card variant="shadow">
@@ -46,7 +123,7 @@ export function DailyStreakCard({
           Daily Streak
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 py-4">
         <div className="flex items-center gap-3">
           <div>
             <p className="font-extrabold text-[36px] text-primary mb-2">
@@ -58,48 +135,42 @@ export function DailyStreakCard({
         <div className="">
           <div className="flex mt-4 space-x-2 justify-center">
             {DAYS.map((day) => {
-              // const isClaimed = weekClaims.includes(day);
-              const isClaimed = false; // Placeholder until weekClaims is used
+              const isClaimed = weekClaims.includes(day);
               const isToday = day === todayDayName;
 
               return (
-                
-                  <div
+                <div
                   key={day}
-                    className={cn(
-                      "h-10 w-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 bg-gray-200 text-gray-500 ",
-                      isClaimed && "ring-2 ring-primary ring-offset-2",
-                      !isClaimed &&
-                        isToday &&
-                        "ring-2 ring-primary ring-offset-2",
-                      
-                    )}
-                  >
-                    {day.charAt(0)}
-                  </div>
-              
+                  className={cn(
+                    "h-9 w-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 bg-gray-200 text-gray-500 ",
+                    isClaimed &&
+                      "bg-[#70D6FF] border-4 border-cyan-200 text-white",
+                    !isClaimed && isToday && "ring-2 ring-primary ring-offset-2"
+                  )}
+                >
+                  {day.charAt(0)}
+                </div>
               );
             })}
           </div>
-          <p className="text-3.5 text-gray-600 text-center mt-3">
+          <p className="text-sm text-gray-600 text-center mt-3">
             Check in daily to to earn +5 points
           </p>
         </div>
         <Button
-          onClick={onClaim}
-          disabled={!canClaim}
-          variant="secondary"
-          className={cn(
-            "w-full",
-            canClaim
-              ? " bg-primary text-white hover:shadow-[0_4px_12px_rgba(144,19,254,0.2)] hover:-translate-y-0.5"
-              : ""
-          )}
+          onClick={handleClaim}
+          disabled={loading || !canClaim}
+          variant={loading || !canClaim ? "disabled" : "primary"}
+          className={cn("w-full")}
         >
           <Zap size={20} />
           {canClaim ? "Claim Today's Point" : "Claimed Today"}
         </Button>
       </CardContent>
+      <DailyClaimSuccessModal
+        isOpen={openSuccessModal}
+        onClose={handleCloseModal}
+      />
     </Card>
   );
 }

@@ -1,7 +1,8 @@
 import type { ButtonHTMLAttributes } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "tertiary";
+  variant?: "primary" | "tertiary" | "disabled";
+  disabled?: boolean;
 }
 
 export default function Button({
@@ -13,12 +14,14 @@ export default function Button({
   type = "button",
   ...rest
 }: ButtonProps) {
-  const variantStyle =
-    {
-      primary: "bg-primary hover:bg-[#8628da] text-white py-2 px-4",
-      secondary: "py-3 px-6 bg-gray-300 text-gray-500 cursor-not-allowed",
-      tertiary: "bg-[linear-gradient(45deg,#9013FE,#FF8687)] text-white py-2 px-4  text-sm"
-    }[variant];
+  const effectiveVariant = disabled ? "disabled" : variant;
+  const variantStyle = {
+    primary:
+      "bg-primary hover:bg-[#8628da] text-white py-2 px-4 hover:shadow-[0_4px_12px_rgba(144,19,254,0.2)] hover:-translate-y-0.5",
+    tertiary:
+      "bg-[linear-gradient(45deg,#9013FE,#FF8687)] text-white py-2 px-4  text-sm",
+    disabled: "bg-gray-300 text-gray-500 cursor-not-not-allowed py-2 px-4",
+  }[effectiveVariant];
 
   return (
     <button

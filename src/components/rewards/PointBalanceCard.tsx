@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Progress } from "../ui/progress";
 
 interface PointsBalanceCardProps {
-  balance: number;
+  balance: any;
   milestone?: number;
 }
 
@@ -38,7 +38,7 @@ export function PointsBalanceCard({
       <CardContent className="p-4">
         <div className="flex justify-between items-center">
           <span className="font-extrabold text-[36px] text-primary m-[10px_0]">
-            {balance.toLocaleString()}
+            {balance}
           </span>
           <div className="bg-transparent w-25 h-25">
           <svg
@@ -292,7 +292,7 @@ export function PointsBalanceCard({
         </div>
 
         <div className="mt-4">
-          <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Progress to <span className="font-medium">$5 Gift Card</span></span><span className="font-medium">5/5000</span></div>
+          <div className="flex justify-between text-sm mb-1"><span className="text-gray-600">Progress to <span className="font-medium">$5 Gift Card</span></span><span className="font-medium">{balance}/5000</span></div>
           <Progress value={progress} className="h-2 bg-[#e5e7eb] rounded-full overflow-hidden" />
           <p className="text-xs text-gray-500 mt-2">🚀 Just getting started — keep earning points!</p>
         </div>
