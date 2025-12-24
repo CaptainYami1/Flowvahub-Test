@@ -5,68 +5,37 @@ import { Redeemables } from "../../../components/rewards/Redeemables";
 import { usePointBalance } from "../../../hooks/usePointBalance";
 import supabase from "../../../services/config";
 import { toast } from "react-toastify";
+import { Skeleton } from "../../../components/ui/skeleton";
+
+interface RedeemableItem {
+  id: number;
+  icon: string;
+  name: string;
+  description: string;
+  points: number;
+}
 
 export const RedeemRewards = () => {
   const { pointBalance, updateBalance } = usePointBalance();
+  const [redeemablesItems, setRedeemablesItems] = useState<RedeemableItem[]>(
+    []
+  );
+  const [redeeming, setRedeeming] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
   const tabs = ["All Rewards", "Unlocked", "Locked", "Coming soon"];
   const balance = pointBalance ?? 0;
-  const redeemablesItems = [
-    {
-      icon: "💸",
-      name: "$5 Bank Transfer",
-      descriprion:
-        "The $5 equivalent will be transferred to your bank account.",
-      points: 5000,
-    },
-    {
-      icon: "💸",
-      name: "$5 PayPal International",
-      descriprion:
-        "Receive a $5 PayPal balance transfer directly to your PayPal account email.",
-      points: 5000,
-    },
-    {
-      icon: "🎁",
-      name: "$5 Virtual Visa Card",
-      descriprion:
-        "Use your $5 prepaid card to shop anywhere Visa is accepted online.",
-      points: 5000,
-    },
-    {
-      icon: "🎁",
-      name: "$5 Apple Gift Card",
-      descriprion:
-        "Redeem this $5 Apple Gift Card for apps, games, music, movies, and more on the App Store and iTunes.",
-      points: 5000,
-    },
-    {
-      icon: "🎁",
-      name: "$5 Google Play Card",
-      descriprion:
-        "Use this $5 Google Play Gift Card to purchase apps, games, movies, books, and more on the Google Play Store.",
-      points: 5000,
-    },
-    {
-      icon: "🎁",
-      name: "$5 Amazon Gift Card",
-      descriprion:
-        "Get a $5 digital gift card to spend on your favorite tools or platforms.",
-      points: 5000,
-    },
-    {
-      icon: "🎁",
-      name: "$10 Amazon Gift Card",
-      descriprion:
-        "Get a $10 digital gift card to spend on your favorite tools or platforms.",
-      points: 10000,
-    },
-    {
-      icon: "📚",
-      name: "Free Udemy Course",
-      descriprion: "Coming Soon!",
-      points: 0,
-    },
-  ];
+
+  const fetchRedeemables = async () => {
+    const { data, error } = await supabase.from("redeemables").select();
+
+    if (error) {
+      toast.error("Unable to fetch redeemables.");
+      return;
+    }
+    setLoading(false)
+    setRedeemablesItems(data);
+  };
+  fetchRedeemables();
   const [activeTab, setActiveTab] = useState(tabs[0]);
 
   const getFilteredItems = (tab: string) => {
@@ -82,19 +51,22 @@ export const RedeemRewards = () => {
   };
 
   const handleRedeem = async (item: any) => {
-  if (item.description === "Coming Soon!" || item.points > balance) return;
-  const { error } = await supabase.from("redeemed").insert({
-    item_name: item.name,
-    point: item.points,
-  });
-  if (error) {
-    toast.error("Unable to claim reward");
-    console.log(error);
-    return;
-  }
-  updateBalance(-item.points);
-  toast.success(`Successfully redeemed ${item.name}`);
-};
+    setRedeeming(item.id);
+    if (item.description === "Coming Soon!" || item.points > balance) return;
+    const { error } = await supabase.from("redeemed").insert({
+      item_name: item.name,
+      point: item.points,
+    });
+    if (error) {
+      toast.error("Unable to claim reward");
+      setRedeeming(null);
+      console.log(error);
+      return;
+    }
+    updateBalance(-item.points);
+    setRedeeming(null);
+    toast.success(`Successfully redeemed ${item.name}`);
+  };
 
   return (
     <>
@@ -115,26 +87,43 @@ export const RedeemRewards = () => {
             );
           })}
         </div>
+        {loading && (
+          <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(300px,1fr))] mt-6">
+            <Skeleton className="w-full h-60 bg-gray-300" />
+            <Skeleton className="w-full h-60 bg-gray-300" />
+            <Skeleton className="w-full h-60 bg-gray-300" />
+            <Skeleton className="w-full h-60 bg-gray-300" />
+            <Skeleton className="w-full h-60 bg-gray-300" />
+            <Skeleton className="w-full h-60 bg-gray-300" />
+          </div>
+        )}
         <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(300px,1fr))] mt-6">
-          {getFilteredItems(activeTab).map((item) => (
-            <Redeemables
-              key={item.name}
-              icon={item.icon}
-              name={item.name}
-              description={item.descriprion}
-              point={item.points}
-              disabled={balance < item.points || item.descriprion === "Coming Soon!"}
-              redeem={balance >= item.points && item.points !== 0}
-              button={
-                item.points > balance
-                  ? "Locked"
-                  : item.points === 0
-                  ? "Coming Soon"
-                  : "Redeem"
-              }
-              onClick={() => handleRedeem(item)}
-            />
-          ))}
+          {redeemablesItems &&
+            getFilteredItems(activeTab).map((item) => (
+              <Redeemables
+                key={item.id}
+                icon={item.icon}
+                name={item.name}
+                description={item.description}
+                point={item.points}
+                disabled={
+                  balance < item.points ||
+                  item.description === "Coming Soon!" ||
+                  redeeming === item.id
+                }
+                redeem={balance >= item.points && item.points !== 0}
+                button={
+                  item.points > balance
+                    ? "Locked"
+                    : item.points === 0
+                    ? "Coming Soon"
+                    : redeeming === item.id
+                    ? "Redeeming..."
+                    : "Redeem"
+                }
+                onClick={() => handleRedeem(item)}
+              />
+            ))}
         </div>
       </div>
     </>

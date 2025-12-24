@@ -68,7 +68,7 @@ export const Modal = React.memo(({ isOpen, children, onClose }: ModalProps) => {
       onClick={handleOverlayClick}
     >
       <div
-        className="max-w-92.5 w-full rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center bg-white border-gray-900/10 border-2 border-b-0 rounded-t-2xl rounded-b-2xl shadow-[rgba(0,0,0,0.08)] box-border text-sm leading-5.5 text-start relative select-text font-(--font-family-ui)"
+        className="max-w-92.5 animate-fadeIn w-full rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center bg-white border-gray-900/10 border-2 border-b-0 rounded-t-2xl rounded-b-2xl shadow-[rgba(0,0,0,0.08)] box-border text-sm leading-5.5 text-start relative select-text font-(--font-family-ui)"
         onClick={handleModalContentClick}
         onMouseDown={handleContentMouseDown}
       >

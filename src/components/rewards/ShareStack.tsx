@@ -1,7 +1,42 @@
 import { Share2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../ui/card";
+import { NoStackModal } from "./NoStackModal";
+import { useEffect, useState } from "react";
+import supabase from "../../services/config";
+import { toast } from "react-toastify";
 
+interface stacks {
+  id: number;
+  name: string;
+  description: string;
+  tool: string;
+}
 export function ShareStack() {
+  const [openModal, setOpenModal] = useState(false);
+  const [stack, setStack] = useState<stacks[] | null>([]);
+
+  const fetchstacks = async () => {
+    const { data, error } = await supabase.from("stack").select();
+
+    if (error) {
+      toast.error("Unable to fetch stacks.");
+      console.log(error);
+      return;
+    }
+    setStack(data);
+  };
+
+  useEffect(() => {
+    fetchstacks();
+  }, []);
+
+  const handleShare = () => {
+     console.log(stack)
+    if (stack?.length === 0 ) {
+      setOpenModal(true);
+    }
+  };
+
   return (
     <Card variant="border">
       <CardHeader className="flex-row p-4 border border-b-[#f3f4f6] border-t-0 border-r-0 border-l-0 bg-white flex items-center gap-3">
@@ -18,12 +53,16 @@ export function ShareStack() {
           <div>
             <p className="font-medium text-sm">Share your tool stack</p>
           </div>
-          <button className="bg-[#eef2ff] hover:text-white hover:bg-primary text-primary py-2 px-4 rounded-full font-semibold text-sm transition-all duration-200 inline-flex items-center gap-2 border-0">
-            <Share2 size={24}/>
+          <button
+            className="bg-[#eef2ff] hover:text-white hover:bg-primary text-primary py-2 px-4 rounded-full font-semibold text-sm transition-all duration-200 inline-flex items-center gap-2 border-0"
+            onClick={() => handleShare()}
+          >
+            <Share2 size={24} />
             Share
           </button>
         </div>
       </CardContent>
+      <NoStackModal isOpen={openModal} onClose={() => setOpenModal(false)} />
     </Card>
   );
 }

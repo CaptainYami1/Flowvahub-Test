@@ -7,6 +7,7 @@ import supabase from "../../services/config";
 import { toast } from "react-toastify";
 import { DailyClaimSuccessModal } from "./DailyClaimSuccessModal";
 import { usePointBalance } from "../../hooks/usePointBalance";
+import { useRewards } from "../../hooks/useRewards";
 
 interface Claim {
   claim_date: string;
@@ -19,6 +20,7 @@ export function DailyStreakCard() {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
   const { updateBalance } = usePointBalance();
+  const { dailyReward } = useRewards();
   const today = new Date().toISOString().split("T")[0];
   const todayDayName = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
     new Date().getDay()
@@ -44,7 +46,9 @@ export function DailyStreakCard() {
     setLoading(false);
   };
   const handleClaim = async () => {
-    if (!canClaim) return;
+    if (!canClaim || dailyReward === null) return;
+    
+   
     const { error } = await supabase.from("claim_days").insert({
       claim_date: today,
     });
@@ -55,9 +59,10 @@ export function DailyStreakCard() {
       fetchClaims();
       return;
     }
-
+    if (dailyReward !== null) {
+      updateBalance(dailyReward);
+    }
     fetchClaims();
-    updateBalance(5);
     setOpenSuccessModal(true);
   };
 
