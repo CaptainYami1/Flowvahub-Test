@@ -1,7 +1,144 @@
 import { Copy, Users } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../ui/card";
+import { useState, useEffect } from "react";
+import supabase from "../../services/config";
+import { toast } from "react-toastify";
+import { usePointBalance } from "../../hooks/usePointBalance";
+import { useRewards } from "../../hooks/useRewards";
 
 export function ReferAndEarn() {
+  const [referralCode, setReferralCode] = useState<string>("");
+  const [referralsCount, setReferralsCount] = useState<number>(0);
+  const [pointsEarned, setPointsEarned] = useState<number>(0);
+  const [copied, setCopied] = useState<boolean>(false);
+  const { updateBalance } = usePointBalance();
+  const { referralReward } = useRewards();
+  // Generate referral code from user ID and store it
+  useEffect(() => {
+    const setupReferralCode = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user) {
+        // Use first 8 characters of user ID as referral code
+        const code = session.user.id.substring(0, 8);
+        setReferralCode(code);
+
+        // Store referral code mapping in database
+        const { error } = await supabase.from("referral_codes").upsert(
+          {
+            user_id: session.user.id,
+            code: code,
+          },
+          { onConflict: "user_id" }
+        );
+
+        if (error) {
+          console.error("Error storing referral code:", error);
+        }
+      }
+    };
+    setupReferralCode();
+  }, []);
+
+  // Fetch referral stats
+  useEffect(() => {
+    const fetchReferralStats = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data, error } = await supabase
+        .from("referral_codes")
+        .select("id")
+        .eq("user_id", session.user.id);
+
+      if (!error && data) {
+        setReferralsCount(data.length);
+        // Calculate points earned (referrals count * referral reward)
+        if (referralReward) {
+          setPointsEarned(data.length * referralReward);
+        }
+      }
+    };
+
+    if (referralCode) {
+      fetchReferralStats();
+    }
+  }, [referralCode, referralReward]);
+
+  useEffect(() => {
+    const processReferral = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refCode = urlParams.get("ref");
+
+      if (!refCode) return;
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.user) return;
+
+      const { data: existingRef } = await supabase
+        .from("referrals")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (existingRef) return;
+      try {
+        const { data: referralMapping } = await supabase
+          .from("referral_codes")
+          .select("user_id")
+          .eq("code", refCode)
+          .single();
+
+        if (referralMapping && referralMapping.user_id !== session.user.id) {
+          const referrerId = referralMapping.user_id;
+
+          // Create referral record
+          const { error: refError } = await supabase.from("referrals").insert({
+            referrer_id: referrerId,
+            user_id: session.user.id,
+            referral_code: refCode,
+          });
+
+          if (!refError) {
+            if (referralReward !== null) {
+              updateBalance(referralReward);
+            }
+
+            toast.success("Referral processed! Points added to referrer.");
+          }
+        }
+      } catch (error) {
+        console.error("Error processing referral:", error);
+      }
+    };
+
+    if (referralReward) {
+      processReferral();
+    }
+  }, [referralReward]);
+
+  const handleCopy = async () => {
+    const referralLink = `localhost:5173/?ref=${referralCode}`;
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      setCopied(true);
+      toast.success("Referral link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const referralLink = referralCode
+    ? `localhost:5173/?ref=${referralCode}`
+    : "localhost:5173/?ref=loading";
+
   return (
     <Card variant="shadow">
       <CardHeader className="flex-row items-center gap-3 p-4 relative border border-b-[#f3f4f6] bg-[#eef2ff] border-t-0 border-r-0 border-l-0">
@@ -20,11 +157,15 @@ export function ReferAndEarn() {
       <CardContent className="p-4 gap-6 flex flex-col">
         <div className="flex flex-row items-center">
           <div className="text-center p-2 flex-1">
-            <div className="text-2xl font-semibold text-primary">0</div>
+            <div className="text-2xl font-semibold text-primary">
+              {referralsCount}
+            </div>
             <div className="text-gray-600">Referrals</div>
           </div>
           <div className="text-center p-2 flex-1">
-            <div className="text-2xl font-semibold text-primary">0</div>
+            <div className="text-2xl font-semibold text-primary">
+              {pointsEarned}
+            </div>
             <div className="text-gray-600">Points Earned</div>
           </div>
         </div>
@@ -38,18 +179,23 @@ export function ReferAndEarn() {
               title="link"
               readOnly
               className="flex-1  border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full pr-10"
-              value="https://app.flowvahub.com/signup/?ref=adeso6815"
+              value={referralLink}
             />
-            <button 
+            <button
               title="copy"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer z-10"
+              onClick={handleCopy}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 cursor-pointer z-10 hover:opacity-80 transition-opacity"
             >
-              <Copy className="text-primary" size={24} />
+              <Copy
+                className={copied ? "text-green-500" : "text-primary"}
+                size={24}
+              />
             </button>
           </div>
         </div>
         <div className="flex justify-center gap-4 mt-4">
-          <button title="social-media"
+          <button
+            title="social-media"
             className="w-7.5 h-7.5 rounded-full flex items-center justify-center text-white text-[18px] transition-transform duration-200 hover:-translate-y-0.75"
             style={{ background: "rgb(24, 119, 242)" }}
           >
@@ -69,7 +215,8 @@ export function ReferAndEarn() {
               ></path>
             </svg>
           </button>
-          <button title="social-media"
+          <button
+            title="social-media"
             className="w-7.5 h-7.5 rounded-full flex items-center justify-center text-white text-[18px] transition-transform duration-200 hover:-translate-y-0.75"
             style={{ background: "black" }}
           >
@@ -89,7 +236,8 @@ export function ReferAndEarn() {
               ></path>
             </svg>
           </button>
-          <button title="social-media"
+          <button
+            title="social-media"
             className="w-7.5 h-7.5 rounded-full flex items-center justify-center text-white text-[18px] transition-transform duration-200 hover:-translate-y-0.75"
             style={{ background: "rgb(0, 119, 181)" }}
           >
@@ -109,7 +257,8 @@ export function ReferAndEarn() {
               ></path>
             </svg>
           </button>
-          <button title="social-media"
+          <button
+            title="social-media"
             className="w-7.5 h-7.5 rounded-full flex items-center justify-center text-white text-[18px] transition-transform duration-200 hover:-translate-y-0.75"
             style={{ background: "rgb(37, 211, 102)" }}
           >

@@ -8,7 +8,7 @@ import { ReferAndEarn } from "../../../components/rewards/ReferAndEarn";
 import { usePointBalance } from "../../../hooks/usePointBalance";
 
 export const EarnPoint = () => {
-  const { pointBalance, pointBalanceError, pointBalanceLoading } =
+  const { pointBalance, pointBalanceLoading } =
     usePointBalance();
   
   return (
@@ -18,7 +18,7 @@ export const EarnPoint = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <PointsBalanceCard
             balance={
-              pointBalanceError || pointBalanceLoading
+              pointBalanceLoading
                 ? "-"
                 : pointBalance ?? "0"
             }

@@ -10,7 +10,7 @@ export const DailyClaimSuccessModal = React.memo(
   ({ isOpen, onClose }: DailyClaimSuccessModalProps) => {
     return (
       <Modal isOpen={isOpen} onClose={onClose}>
-        <div className="w-full font-(--font-family-ui)">
+        <div className="w-full font-ui">
           <div className="block relative box-border text-sm text-start leading-5.5 wrap-break-word list-none appearance-none overflow-wrap-break-word pointer-events-auto">
             <button
               type="button"

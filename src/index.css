@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-* {
+/* Apply Roboto as default font for body, but allow font-family-ui to override */
+body {
   font-family: "Roboto", sans-serif;
 }
 
@@ -9,4 +10,9 @@
   --color-secondary: #9013fe0d;
   --font-family-ui: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* Guaranteed working font-family-ui class */
+.font-ui {
+  font-family: var(--font-family-ui);
 }

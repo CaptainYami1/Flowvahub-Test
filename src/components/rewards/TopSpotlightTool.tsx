@@ -1,10 +1,15 @@
 import { Calendar, Gift, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import Button from "../ui/button";
+import { useState } from "react";
+import { TopToolClaimModal } from "./TopToolClaimModal";
 
 interface TopSpotlightToolProps {}
 
 export function TopSpotlightTool({}: TopSpotlightToolProps) {
+  const [openModal, setOpenModal] = useState(false)
+
+  
   return (
     <Card variant="shadow">
       <CardHeader className="p-4 bg-[linear-gradient(135deg,#9013FE_0%,#70D6FF_100%)] text-white relative overflow-hidden">
@@ -42,13 +47,14 @@ export function TopSpotlightTool({}: TopSpotlightToolProps) {
               <UserPlus />
               Sign up
             </Button>
-            <Button variant="tertiary" >
+            <Button variant="tertiary" onClick={()=> setOpenModal(true)}>
               <Gift />
               Claim 50 pts
             </Button>
           </div>
         </div>
       </CardContent>
+      <TopToolClaimModal isOpen={openModal} onClose={()=>setOpenModal(false)}/>
     </Card>
   );
 }

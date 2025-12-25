@@ -35,8 +35,8 @@ export const NoStackModal = ({ isOpen, onClose }: NoStackModalProps) => {
             </span>
           </span>
         </button>
-        <h2 className="text-2xl font-bold text-black font-family-ui">Share Your Stack</h2>
-        <div className="w-10 h-10  rounded-full flex justify-center items-center  text-[1rem] bg-[#E9D4FF] text-[#9013FE]">
+        <h2 className="text-2xl font-bold text-black font-ui">Share Your Stack</h2>
+        <div className="w-10 h-10  rounded-full flex justify-center items-center  text-[1rem] p-2 bg-[#E9D4FF] text-[#9013FE]">
           <svg
             aria-hidden="true"
             focusable="false"
@@ -53,7 +53,7 @@ export const NoStackModal = ({ isOpen, onClose }: NoStackModalProps) => {
             ></path>
           </svg>
         </div>
-        <p className="text-gray-600 text-sm max-w-80.5 text-center font-family-ui">You have no stack created yet, go to Tech Stack to create one.</p>
+        <p className="text-gray-600 text-sm max-w-80.5 text-center font-ui">You have no stack created yet, go to Tech Stack to create one.</p>
       </div>
     </Modal>
   );

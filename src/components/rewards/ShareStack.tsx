@@ -1,40 +1,57 @@
 import { Share2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { NoStackModal } from "./NoStackModal";
-import { useEffect, useState } from "react";
+import { useState, useContext } from "react";
 import supabase from "../../services/config";
 import { toast } from "react-toastify";
+import { StackAvailModal } from "./StackAvailModal";
+import { ShareOptionModal } from "./ShareOptionModal";
+import { AppContext } from "../../context/AppContext";
 
-interface stacks {
-  id: number;
-  name: string;
-  description: string;
-  tool: string;
-}
+
 export function ShareStack() {
+  const context = useContext(AppContext)!;
+  const { setStacks } = context;
+  
   const [openModal, setOpenModal] = useState(false);
-  const [stack, setStack] = useState<stacks[] | null>([]);
+  const [openStackAvailModal, setOpenStackAvailModal] = useState(false);
+  const [openShareOptionModal, setOpenShareOptionModal] = useState(false);
 
-  const fetchstacks = async () => {
-    const { data, error } = await supabase.from("stack").select();
+  const handleShare = async () => {
+    // Fetch stacks from endpoint
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      toast.error("Please log in to share your stack");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("stack")
+      .select()
+      .eq("user_id", session.user.id);
 
     if (error) {
       toast.error("Unable to fetch stacks.");
-      console.log(error);
+      console.error(error);
       return;
     }
-    setStack(data);
+
+    // Check if data is returned
+    if (!data || data.length === 0) {
+      // No data returned - show NoStackModal
+      setOpenModal(true);
+    } else {
+      // Data returned - save to AppContext and show StackAvailModal
+      setStacks(data);
+      setOpenStackAvailModal(true);
+    }
   };
 
-  useEffect(() => {
-    fetchstacks();
-  }, []);
-
-  const handleShare = () => {
-     console.log(stack)
-    if (stack?.length === 0 ) {
-      setOpenModal(true);
-    }
+  const handleOpenShareOption = () => {
+    setOpenShareOptionModal(true);
   };
 
   return (
@@ -63,6 +80,15 @@ export function ShareStack() {
         </div>
       </CardContent>
       <NoStackModal isOpen={openModal} onClose={() => setOpenModal(false)} />
+      <StackAvailModal 
+        isOpen={openStackAvailModal} 
+        onClose={() => setOpenStackAvailModal(false)}
+        openShareOption={handleOpenShareOption}
+      />
+      <ShareOptionModal 
+        isOpen={openShareOptionModal} 
+        onClose={() => {setOpenShareOptionModal(false),setOpenStackAvailModal(false)}}
+      />
     </Card>
   );
 }

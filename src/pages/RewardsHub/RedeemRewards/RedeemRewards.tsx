@@ -32,7 +32,7 @@ export const RedeemRewards = () => {
       toast.error("Unable to fetch redeemables.");
       return;
     }
-    setLoading(false)
+    setLoading(false);
     setRedeemablesItems(data);
   };
   fetchRedeemables();
@@ -53,7 +53,19 @@ export const RedeemRewards = () => {
   const handleRedeem = async (item: any) => {
     setRedeeming(item.id);
     if (item.description === "Coming Soon!" || item.points > balance) return;
+
+    // Get current user session
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast.error("Please log in to redeem rewards");
+      setRedeeming(null);
+      return;
+    }
+
     const { error } = await supabase.from("redeemed").insert({
+      user_id: session.user.id,
       item_name: item.name,
       point: item.points,
     });

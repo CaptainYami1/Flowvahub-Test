@@ -23,7 +23,7 @@ export const Redeemables = ({
   return (
     <>
       <Card variant="redeemable">
-        <div className="flex flex-col items-center justify-center gap-4 font-(--font-family-ui)">
+        <div className="flex flex-col items-center justify-center gap-4 font-ui">
           <span className="w-12 h-12 rounded-xl flex items-center justify-center m-[0_auto] text-2xl text-primary bg-[#E9D4FF]">
             {icon}
           </span>

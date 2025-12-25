@@ -29,45 +29,160 @@ export function DailyStreakCard() {
   const fetchClaims = async () => {
     setLoading(true);
 
+    // Get current user session
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
 
-    const { data, error } = await supabase
+    // Fetch ALL claims for this user to handle duplicates (same pattern as point balance)
+    // Order by id ascending to get the FIRST (oldest) record for each date
+    const { data: allClaims, error: fetchError } = await supabase
       .from("claim_days")
-      .select("claim_date")
-      .gte("claim_date", sevenDaysAgo.toISOString().split("T")[0]);
+      .select("id, claim_date")
+      .eq("user_id", user.id)
+      .gte("claim_date", sevenDaysAgo.toISOString().split("T")[0])
+      .order("id", { ascending: true });
 
-    if (error) {
+    if (fetchError) {
+      console.error("Error fetching claims:", fetchError);
       toast.error("Failed to load streak data");
-    } else {
-      setClaims(data ?? []);
+      setLoading(false);
+      return;
     }
+
+    if (!allClaims || allClaims.length === 0) {
+      setClaims([]);
+      setLoading(false);
+      return;
+    }
+
+    // Handle duplicates: if multiple claims exist for the same date, keep only the first (oldest) one
+    const uniqueClaimsMap = new Map<string, { claim: Claim; id: number }>();
+    const duplicateIds: number[] = [];
+
+    allClaims.forEach((claim) => {
+      const claimDate = new Date(claim.claim_date).toISOString().split("T")[0];
+
+      if (!uniqueClaimsMap.has(claimDate)) {
+        // First occurrence of this date - keep it (this is the oldest due to ascending id order)
+        uniqueClaimsMap.set(claimDate, {
+          claim: { claim_date: claim.claim_date },
+          id: claim.id,
+        });
+      } else {
+        // Duplicate date - mark for deletion (keep the first/oldest one)
+        duplicateIds.push(claim.id);
+      }
+    });
+
+    // Delete duplicate claims if any exist
+    if (duplicateIds.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("claim_days")
+        .delete()
+        .in("id", duplicateIds);
+
+      if (deleteError) {
+        console.error("Error deleting duplicate claims:", deleteError);
+      }
+    }
+
+    // Set the unique claims (extract just the claim_date from the map values)
+    setClaims(Array.from(uniqueClaimsMap.values()).map((item) => item.claim));
 
     setLoading(false);
   };
   const handleClaim = async () => {
     if (!canClaim || dailyReward === null) return;
-    
-   
-    const { error } = await supabase.from("claim_days").insert({
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      toast.error("Please log in to claim rewards");
+      return;
+    }
+
+    // Check if user already claimed today (filtered by user_id)
+    const { data: existingClaims } = await supabase
+      .from("claim_days")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("claim_date", today);
+
+    if (existingClaims && existingClaims.length > 0) {
+      toast.error("You have already claimed today");
+      await fetchClaims(); // Refetch to update UI
+      return;
+    }
+
+    // Insert the claim
+    const { error } = await supabase.from("claim_days").upsert({
+      user_id: user.id,
       claim_date: today,
     });
 
     if (error) {
-      toast.error("Already claimed today");
-      console.log(error);
-      fetchClaims();
+      if (error.code === "23505") {
+        toast.info("You have already claimed today");
+        console.log(error)
+        await fetchClaims(); // Refetch to update UI
+      } else {
+        toast.error("Failed to claim reward");
+        console.error("Claim error:", error);
+        await fetchClaims();
+      }
       return;
     }
+
+    // Success - update balance and show modal
     if (dailyReward !== null) {
       updateBalance(dailyReward);
     }
-    fetchClaims();
+    await fetchClaims(); // Refetch to update UI
     setOpenSuccessModal(true);
   };
-
   useEffect(() => {
-    fetchClaims();
+    let mounted = true;
+
+    // Initial fetch
+    const initFetch = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session && mounted) {
+        fetchClaims();
+      }
+    };
+
+    initFetch();
+
+    // Listen for auth state changes (same pattern as point balance)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      if (session && mounted) {
+        fetchClaims();
+      } else if (!session && mounted) {
+        // Clear claims when user logs out
+        setClaims([]);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Check if user can claim today
