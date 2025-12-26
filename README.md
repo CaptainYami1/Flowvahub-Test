@@ -1,190 +1,104 @@
-# Flowva Test - Rewards Hub Application
+# Flowva Rewards Hub
 
-A modern React-based rewards and gamification platform built with TypeScript, Vite, and Supabase. This application provides users with a comprehensive rewards system where they can earn points through various activities and redeem them for rewards.
+A comprehensive rewards and points management system built with React, TypeScript, and Supabase. This application allows users to earn points through various activities, track their daily streaks, refer friends, and redeem rewards.
 
-## 🚀 Features
 
-### Core Functionality
+## Tech Stack
 
-#### 1. **Point Balance System**
+- **Frontend Framework**: React 19.2.0
+- **Language**: TypeScript 5.9.3
+- **Build Tool**: Vite 7.2.4
+- **Styling**: Tailwind CSS 4.1.18
+- **Backend/Database**: Supabase (PostgreSQL)
+- **Routing**: React Router DOM 7.11.0
+- **Notifications**: React Toastify 11.0.5
+- **Icons**: Lucide React 0.562.0
+
+## Features
+
+### 1. Point Balance System
 
 - Real-time point balance tracking
-- User-scoped balance management (each user has their own balance)
-- Automatic balance updates with optimistic UI updates
-- Balance is only created when user updates it (not on fetch)
-- Uses first (oldest) record only - prevents duplicate records
-- Automatic duplicate cleanup and consolidation
-- Auth state synchronization (refetches on login/logout)
-- Point deduction when redeeming rewards
-- Balance updates immediately in UI without page reload
+- User-scoped balance management
+- Automatic balance initialization (defaults to 0)
+- Progress tracking toward milestone rewards (e.g., $5 Gift Card at 5000 points)
+- Visual progress bar and balance display
 
-#### 2. **Daily Streak Tracking**
+### 2. Daily Streak System
 
+- Daily check-in functionality
 - 7-day streak visualization
-- User-scoped daily claims (each user has their own streak)
-- Daily claim functionality with point rewards
-- Streak calculation based on consecutive days
-- Visual indicators for claimed days and today's status
-- Success modal after claiming daily rewards
-- Prevents duplicate claims for the same day
-- Uses first (oldest) record per date - prevents duplicates
-- Automatic duplicate cleanup
-- Auth state synchronization (refetches on login/logout)
-- Resets daily claims when balance is reset to 0
+- Automatic streak calculation
+- Duplicate claim prevention (user-scoped)
+- Points awarded for daily claims (configurable via rewards table)
+- Success modal on claim
 
-#### 3. **Rewards Hub**
+### 3. Referral System
 
-The main hub is divided into two main sections:
+- Automatic referral code generation (first 8 characters of user ID)
+- Referral link sharing with copy functionality
+- Social media sharing buttons (Facebook, Twitter/X, LinkedIn, WhatsApp)
+- Referral statistics tracking (count and points earned)
+- Automatic referral processing from URL parameters (`?ref=CODE`)
+- Duplicate referral prevention
+- Points awarded to referrer when new user joins
 
-##### **Earn Points Tab**
-
-- **Your Rewards Journey Section:**
-
-  - Point Balance Card: Displays current accumulated points
-  - Daily Streak Card: Track and claim daily rewards
-  - Top Tool Spotlight: Featured tool promotion with sign-up rewards
-
-- **Earn More Points Section:**
-
-  - Refer and Win: Contest promotion (10,000 points for top 5 winners)
-  - Share Your Stack: Earn points by sharing your tech stack
-
-- **Refer & Earn Section:**
-  - Personal referral link generation (first 8 characters of user ID)
-  - Referral code stored in `referral_codes` table
-  - Automatic referral processing when users visit with `?ref={code}` parameter
-  - Referral tracking in `referrals` table
-  - Referral statistics tracking (count and points earned)
-  - Social media sharing buttons (Facebook, Twitter/X, LinkedIn, WhatsApp)
-  - Copy-to-clipboard functionality for referral links
-  - Prevents duplicate referral processing
-
-##### **Redeem Rewards Tab**
-
-- Filterable reward categories:
-  - All Rewards
-  - Unlocked (affordable rewards)
-  - Locked (requires more points)
-  - Coming Soon (upcoming rewards)
-- Reward cards with:
-  - Icon display
-  - Name and description
-  - Point cost
-  - Redeem button (disabled for locked/coming soon items)
-- Real-time balance validation
-- Loading skeletons during data fetch
-- Success/error toast notifications
-
-#### 4. **Share Stack Feature**
-
-- Share your tech stack to earn points
-- Fetches stacks from database on "Share" button click
-- Modal notification when no stack is available (`NoStackModal`)
-- Stack list modal when stacks are available (`StackAvailModal`)
-- Share options modal with social media sharing (`ShareOptionModal`)
-- Stacks stored in AppContext for global access
-- User-scoped stack data (only shows user's own stacks)
-
-#### 5. **Top Tool Spotlight**
+### 4. Top Tool Spotlight
 
 - Featured tool promotion (currently Reclaim.ai)
-- Sign-up and claim buttons
-- Gradient card design with featured badge
-- **Top Tool Claim Modal**:
-  - Email validation (Reclaim sign-up email)
-  - File upload validation (screenshot requirement)
-  - Checks if user has already claimed (prevents duplicates)
-  - Creates proof of claim in database (`top_tool_claims` table)
-  - Automatically awards points after successful claim submission
-  - Status tracking (pending, verified, rejected)
+- Claim modal with email validation and file upload
+- Duplicate claim prevention
+- Points awarded upon successful claim submission
+- Status tracking (pending/approved)
 
-### Technical Features
+### 5. Share Stack System
 
-#### **Real-time Data Synchronization**
+- Tech stack sharing functionality
+- Modal system for stack availability:
+  - `NoStackModal`: Shown when user has no stacks
+  - `StackAvailModal`: Shown when stacks are available
+  - `ShareOptionModal`: Sharing options and social media links
+- Points awarded for sharing stack
+- Stack data stored in global context
 
-- Supabase real-time subscriptions for point balance updates
-- Automatic data refresh mechanisms
-- Optimistic UI updates
+### 6. Reward Redemption
 
-#### **Responsive Design**
+- Browse available redeemable items
+- Filter by: All Rewards, Unlocked, Locked, Coming Soon
+- Point deduction on redemption
+- Redemption history tracking
+- Disabled state for insufficient points
 
-- Mobile-first approach
-- Responsive sidebar navigation
-- Adaptive grid layouts
-- Mobile hamburger menu with overlay
-
-#### **User Interface Components**
-
-- Custom card components with multiple variants (shadow, border, redeemable)
-- Tab navigation system
-- Modal dialogs with portal rendering (prevents flickering)
-- Proper z-index stacking for nested modals
-- Toast notifications
-- Loading skeletons
-- Progress indicators
-- Custom buttons with variants
-- Custom font system (`font-ui` class for system fonts)
-
-#### **Authentication System**
+### 7. Authentication
 
 - Anonymous authentication via Supabase
-- Login button in sidebar (triggers anonymous login)
-- Conditional rendering based on auth state
-- User information display (name, email, avatar initial)
-- Auth state synchronization across components
-- Automatic data refresh on login/logout
+- Manual login trigger (no automatic sign-in)
+- Session management
+- User profile display in sidebar
+- Guest user support
 
-## 🛠️ Tech Stack
-
-### Frontend
-
-- **React 19.2.0** - UI library
-- **TypeScript 5.9.3** - Type safety
-- **Vite 7.2.4** - Build tool and dev server
-- **React Router DOM 7.11.0** - Client-side routing
-- **Tailwind CSS 4.1.18** - Utility-first CSS framework
-- **Lucide React 0.562.0** - Icon library
-- **React Toastify 11.0.5** - Toast notifications
-- **clsx & tailwind-merge** - Conditional class utilities
-
-### Backend & Database
-
-- **Supabase** - Backend as a Service (BaaS)
-  - PostgreSQL database
-  - Real-time subscriptions
-  - RESTful API
-
-### Development Tools
-
-- **ESLint 9.39.1** - Code linting
-- **TypeScript ESLint** - TypeScript-specific linting rules
-- **Vite React Plugin** - React support for Vite
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
-├── assets/
-│   └── logos/              # Application logos
 ├── components/
-│   ├── icons/              # Custom icon components
 │   ├── Layout/
-│   │   ├── AppLayout.tsx   # Main application layout
-│   │   └── AppSidebar.tsx  # Sidebar navigation component
+│   │   ├── AppLayout.tsx          # Main layout wrapper
+│   │   └── AppSidebar.tsx         # Sidebar with navigation and user info
 │   ├── rewards/
-│   │   ├── DailyClaimSuccessModal.tsx
-│   │   ├── DailyStreak.tsx
-│   │   ├── NoStackModal.tsx
-│   │   ├── PointBalanceCard.tsx
-│   │   ├── Redeemables.tsx
-│   │   ├── ReferAndEarn.tsx
-│   │   ├── ReferAndWin.tsx
-│   │   ├── ShareStack.tsx
-│   │   ├── ShareOptionModal.tsx
-│   │   ├── StackAvailModal.tsx
-│   │   ├── TopSpotlightTool.tsx
-│   │   └── TopToolClaimModal.tsx
-│   └── ui/                 # Reusable UI components
+│   │   ├── DailyStreak.tsx        # Daily streak card and claim logic
+│   │   ├── PointBalanceCard.tsx  # Point balance display with progress
+│   │   ├── ReferAndEarn.tsx       # Referral system implementation
+│   │   ├── ReferAndWin.tsx        # Referral contest card
+│   │   ├── ShareStack.tsx         # Share stack functionality
+│   │   ├── TopSpotlightTool.tsx   # Featured tool card
+│   │   ├── TopToolClaimModal.tsx  # Claim modal for top tool
+│   │   ├── Redeemables.tsx        # Redeemable item card component
+│   │   ├── NoStackModal.tsx       # Modal for no stack scenario
+│   │   ├── StackAvailModal.tsx    # Modal for available stacks
+│   │   ├── ShareOptionModal.tsx   # Sharing options modal
+│   │   └── DailyClaimSuccessModal.tsx # Success modal for daily claims
+│   └── ui/                        # Reusable UI components
 │       ├── button.tsx
 │       ├── card.tsx
 │       ├── header.tsx
@@ -195,118 +109,289 @@ src/
 │       ├── subheading.tsx
 │       └── tab.tsx
 ├── context/
-│   └── AppContext.tsx      # Global application state
+│   └── AppContext.tsx              # Global application context
 ├── hooks/
-│   ├── usePointBalance.tsx # Point balance management hook
-│   └── useRewards.tsx      # Rewards data fetching hook
-├── lib/
-│   └── utils.ts           # Utility functions
+│   ├── usePointBalance.tsx        # Point balance management hook
+│   └── useRewards.tsx             # Rewards configuration hook
 ├── pages/
 │   └── RewardsHub/
+│       ├── RewardsHub.tsx         # Main rewards hub page
 │       ├── EarnPoint/
-│       │   └── EarnPoint.tsx
-│       ├── RedeemRewards/
-│       │   └── RedeemRewards.tsx
-│       └── RewardsHub.tsx
+│       │   └── EarnPoint.tsx      # Earn points section
+│       └── RedeemRewards/
+│           └── RedeemRewards.tsx # Redeem rewards section
 ├── services/
-│   ├── config.ts          # Supabase client configuration
-│   └── pointBalance.ts    # Point balance service functions
-├── App.tsx                # Main application component
-├── main.tsx               # Application entry point
-└── index.css              # Global styles
+│   └── config.ts                  # Supabase client configuration
+├── lib/
+│   └── utils.ts                   # Utility functions (cn, etc.)
+└── index.css                      # Global styles and theme
 ```
 
-## 🗄️ Database Schema
+## Architecture
 
-The application uses the following Supabase tables:
+### Component Hierarchy
 
-### `accumulated_point_balance`
+```
+App
+└── AppProvider (Context Provider)
+    └── BrowserRouter
+        └── AppLayout
+            ├── AppSidebar
+            └── Routes
+                └── RewardsHub
+                    ├── Header
+                    ├── Tabs (Earn Points / Redeem Rewards)
+                    └── Content
+                        ├── EarnPoint
+                        │   ├── PointsBalanceCard
+                        │   ├── DailyStreakCard
+                        │   ├── TopSpotlightTool
+                        │   ├── ReferAndWin
+                        │   ├── ShareStack
+                        │   └── ReferAndEarn
+                        └── RedeemRewards
+                            └── Redeemables (grid)
+```
 
-- `id` (number): Primary key
-- `user_id` (uuid): Foreign key to auth.users
-- `balance` (number): Current point balance
-- **Note**: Only the first (oldest) record per user is used and updated
+### Data Flow
 
-### `claim_days`
+1. **Authentication**: Supabase Auth → AppContext → Components
+2. **Point Balance**: `usePointBalance` hook → AppContext → Components
+3. **Rewards Config**: `useRewards` hook → Components
+4. **Stack Data**: Supabase → AppContext → ShareStack components
 
-- `id` (number): Primary key
-- `user_id` (uuid): Foreign key to auth.users
-- `claim_date` (string): Date of daily claim (ISO format)
-- **Note**: Only the first (oldest) record per user per date is used
+## Database Schema
 
-### `rewards`
+### Tables
 
-- `daily_reward` (number): Points for daily claim
-- `share_stack_reward` (number): Points for sharing stack
-- `top_tool_reward` (number): Points for top tool signup
-- `referal_reward` (number): Points for referral
+#### `accumulated_point_balance`
 
-### `redeemables`
+- `id` (Primary Key)
+- `user_id` (Foreign Key to auth.users)
+- `balance` (Integer, default: 0)
+- **Constraint**: One balance record per user (enforced in application logic)
 
-- `id` (number): Primary key
-- `icon` (string): Emoji or icon identifier
-- `name` (string): Reward name
-- `description` (string): Reward description
-- `points` (number): Point cost (0 for coming soon)
+#### `claim_days`
 
-### `redeemed`
+- `id` (Primary Key)
+- `user_id` (Foreign Key to auth.users)
+- `claim_date` (Date)
+- **Constraint**: Unique claim per user per date (enforced in application logic)
 
-- `id` (number): Primary key
-- `user_id` (uuid): Foreign key to auth.users
-- `item_name` (string): Name of redeemed item
-- `point` (number): Points deducted
+#### `referral_codes`
 
-### `stack`
+- `id` (Primary Key)
+- `user_id` (Foreign Key to auth.users, Unique)
+- `code` (String, first 8 chars of user_id)
 
-- `id` (number): Primary key
-- `user_id` (uuid): Foreign key to auth.users
-- `name` (string): Stack name
-- `description` (string): Stack description
-- `tool` (string): Tool name
+#### `referrals`
 
-### `top_tool_claims`
+- `id` (Primary Key)
+- `referrer_id` (Foreign Key to auth.users)
+- `user_id` (Foreign Key to auth.users)
+- `referral_code` (String)
 
-- `id` (number): Primary key
-- `user_id` (uuid): Foreign key to auth.users (unique - one claim per user)
-- `email` (string): Email used for tool signup
-- `status` (string): Claim status ("pending", "verified", "rejected")
-- `created_at` (timestamp): When the claim was submitted
+#### `top_tool_claims`
 
-### `referral_codes`
+- `id` (Primary Key)
+- `user_id` (Foreign Key to auth.users)
+- `email` (String)
+- `status` (String, default: "pending")
+- `screenshot_filename` (String, nullable)
+- `file_size` (Integer, nullable)
+- `file_type` (String, nullable)
 
-- `id` (number): Primary key
-- `user_id` (uuid): Foreign key to auth.users (unique - one code per user)
-- `code` (string): Referral code (first 8 characters of user ID)
+#### `rewards`
 
-### `referrals`
+- `id` (Primary Key)
+- `daily_reward` (Integer)
+- `share_stack_reward` (Integer)
+- `top_tool_reward` (Integer)
+- `referal_reward` (Integer)
 
-- `id` (number): Primary key
-- `referrer_id` (uuid): Foreign key to auth.users (person who shared link)
-- `user_id` (uuid): Foreign key to auth.users (person who clicked link)
-- `referral_code` (string): The referral code used
+#### `redeemables`
 
-## 🎨 UI/UX Features
+- `id` (Primary Key)
+- `icon` (String)
+- `name` (String)
+- `description` (String)
+- `points` (Integer)
 
-### Design System
+#### `redeemed`
 
-- **Color Scheme**: Purple/primary theme (#9013FE) with cyan accents (#70D6FF)
-- **Typography**:
-  - Default font: Roboto (applied to body)
-  - UI font: System font stack (`ui-sans-serif, system-ui, sans-serif...`) via `.font-ui` class
-  - Custom font family with semantic sizing
-- **Spacing**: Consistent spacing system using Tailwind utilities
-- **Components**: Reusable component library with variants
+- `id` (Primary Key)
+- `user_id` (Foreign Key to auth.users)
+- `item_name` (String)
+- `point` (Integer)
+- `created_at` (Timestamp)
 
-### User Experience
+#### `stack`
 
-- Loading states with skeletons
+- `id` (Primary Key)
+- `user_id` (Foreign Key to auth.users)
+- `name` (String)
+- `description` (String)
+- `tool` (String)
+
+## Authentication
+
+### Anonymous Authentication
+
+- Users can sign in anonymously via Supabase
+- Login button triggers `signInAnonymously()`
+- No automatic sign-in on page load
+- Session stored in Supabase Auth
+- Access token managed in AppContext
+
+### Session Management
+
+- Session checked on component mount
+- Auth state changes trigger UI updates
+- User info displayed in sidebar:
+  - Anonymous users: "Guest User"
+  - Authenticated users: Name/Email
+
+## Key Components
+
+### `usePointBalance` Hook
+
+**Location**: `src/hooks/usePointBalance.tsx`
+
+**Features**:
+
+- Fetches user's point balance from `accumulated_point_balance` table
+- Creates balance record if none exists (defaults to 0)
+- Updates balance with optimistic UI updates
+- Handles duplicate records (keeps first record, deletes duplicates)
+- Returns: `pointBalance`, `pointBalanceLoading`, `updateBalance`, `refetch`
+
+**Usage**:
+
+```typescript
+const { pointBalance, updateBalance, refetchBalance } = useAppContext();
+```
+
+### `useRewards` Hook
+
+**Location**: `src/hooks/useRewards.tsx`
+
+**Features**:
+
+- Fetches reward configuration from `rewards` table
+- Returns: `dailyReward`, `shareStackReward`, `topToolReward`, `referralReward`
+
+### `DailyStreak` Component
+
+**Location**: `src/components/rewards/DailyStreak.tsx`
+
+**Features**:
+
+- Fetches last 7 days of claims for authenticated user
+- Handles duplicate claims (keeps oldest per date)
+- Calculates current streak
+- Visual week display with claimed days highlighted
+- Claim button disabled if already claimed today
+- Success modal on claim
+
+**Key Logic**:
+
+- Checks for existing claim before inserting
+- Uses `upsert` for claim insertion
+- Handles duplicate key errors gracefully
+- Refetches claims after successful claim
+
+### `ReferAndEarn` Component
+
+**Location**: `src/components/rewards/ReferAndEarn.tsx`
+
+**Features**:
+
+- Generates referral code from user ID (first 8 chars)
+- Stores code in `referral_codes` table
+- Creates referral link: `localhost:5173/?ref=CODE`
+- Processes referral from URL parameters
+- Prevents duplicate referrals
+- Awards points to referrer
+- Displays referral count and points earned
+- Copy to clipboard functionality
+- Social media sharing buttons
+
+**Referral Flow**:
+
+1. User visits with `?ref=CODE` in URL
+2. Component checks if user already has referral
+3. Looks up referrer by code
+4. Inserts referral record
+5. Awards points to referrer
+
+### `TopToolClaimModal` Component
+
+**Location**: `src/components/rewards/TopToolClaimModal.tsx`
+
+**Features**:
+
+- Email validation (format check)
+- File upload (screenshot requirement)
+- Checks for existing claims before submission
+- Creates claim record in `top_tool_claims` table
+- Awards points on successful submission
+- Portal rendering for proper z-index handling
+- Body scroll lock when open
+
+**Validation**:
+
+- Email: Required, valid format
+- File: Required, image type
+
+### `ShareStack` Component
+
+**Location**: `src/components/rewards/ShareStack.tsx`
+
+**Features**:
+
+- Fetches user's stacks from `stack` table
+- Shows `NoStackModal` if no stacks exist
+- Shows `StackAvailModal` if stacks exist
+- Saves stacks to AppContext for sharing
+- Opens `ShareOptionModal` for sharing options
+
+### `AppContext` (Global State)
+
+**Location**: `src/context/AppContext.tsx`
+
+**State Provided**:
+
+- `openSidebar`: Sidebar visibility
+- `activeItem`: Active navigation item
+- `session`: Auth session token
+- `stacks`: User's tech stacks
+- `pointBalance`: Current point balance
+- `pointBalanceLoading`: Loading state
+- `updateBalance`: Function to update balance
+- `refetchBalance`: Function to refetch balance
+
+## State Management
+
+### Context API
+
+- Global state managed via React Context
+- `AppProvider` wraps entire application
+- `useAppContext` hook for accessing context
+
+### Local State
+
+- Component-specific state managed with `useState`
+- Modal open/close states
+- Form inputs
+- Loading states
+
+### Supabase Integration
+
+- Real-time data fetching
+- Optimistic updates for better UX
 - Error handling with toast notifications
-- Success feedback with modals
-- Disabled states for unavailable actions
-- Responsive navigation
-- Smooth transitions and animations
 
-## 🚦 Getting Started
+## Setup Instructions
 
 ### Prerequisites
 
@@ -316,222 +401,98 @@ The application uses the following Supabase tables:
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
 
-```bash
-git clone <repository-url>
-cd flowva-test
-```
+   ```bash
+   git clone <repository-url>
+   cd flowva-test
+   ```
 
-2. Install dependencies:
+2. **Install dependencies**
 
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-3. Set up environment variables:
+3. **Set up environment variables**
    Create a `.env` file in the root directory:
 
-```env
-VITE_FLOWVAHUB_SUPABASE_URL=your_supabase_url
-VITE_FLOWVAHUB_ANON_KEY=your_supabase_anon_key
-```
+   ```env
+   VITE_FLOWVAHUB_SUPABASE_URL=your_supabase_url
+   VITE_FLOWVAHUB_ANON_KEY=your_supabase_anon_key
+   ```
 
-4. Start the development server:
+4. **Set up Supabase database**
 
-```bash
-npm run dev
-```
+   - Create the tables as described in [Database Schema](#database-schema)
+   - Set up Row Level Security (RLS) policies
+   - Enable anonymous authentication in Supabase Auth settings
 
-## 📝 Available Scripts
+5. **Run the development server**
 
-- `npm run dev` - Start development server
+   ```bash
+   npm run dev
+   ```
 
-## 🔧 Configuration
+6. **Build for production**
+   ```bash
+   npm run build
+   ```
 
-### Vite Configuration
+## Environment Variables
 
-- React plugin enabled
-- Tailwind CSS plugin enabled
-- TypeScript support configured
+| Variable                      | Description                 | Required |
+| ----------------------------- | --------------------------- | -------- |
+| `VITE_FLOWVAHUB_SUPABASE_URL` | Your Supabase project URL   | Yes      |
+| `VITE_FLOWVAHUB_ANON_KEY`     | Your Supabase anonymous key | Yes      |
 
-### TypeScript Configuration
+## Key Features Implementation Details
 
-- Strict type checking enabled
-- React JSX support
-- Path aliases configured
+### Duplicate Prevention
 
-### ESLint Configuration
+- **Point Balance**: Application-level duplicate handling (keeps oldest record)
+- **Daily Claims**: User-scoped duplicate prevention per date
+- **Referrals**: Prevents same user from being referred twice
+- **Top Tool Claims**: One claim per user
 
-- React hooks rules enabled
-- React refresh plugin
-- TypeScript ESLint integration
+### Data Integrity
 
-## 🎯 Key Features Implementation
+- All database operations are user-scoped (`user_id` filtering)
+- Optimistic UI updates with rollback on error
+- Automatic cleanup of duplicate records
+- Error handling with user-friendly toast notifications
 
-### Authentication & User Management
+### UI/UX Features
 
-- Anonymous authentication via Supabase
-- Login button in sidebar triggers anonymous login
-- Conditional UI rendering based on auth state
-- User information display (name, email, avatar initial)
-- Auth state synchronization across all components
-- All database operations are user-scoped via `user_id` filtering
-
-### Data Integrity & Duplicate Prevention
-
-- **Point Balance**: Uses first (oldest) record only, automatic duplicate cleanup
-- **Daily Claims**: Uses first (oldest) record per date, automatic duplicate cleanup
-- **Top Tool Claims**: One claim per user (enforced by database check)
-- **Referrals**: Prevents duplicate referral processing per user
-- All operations filter by `user_id` to ensure data isolation
-
-### Modal System
-
-- Portal-based rendering (prevents flickering)
-- Proper z-index stacking for nested modals
-- Body scroll prevention
-- Click-outside-to-close functionality
-- Proper cleanup on unmount
-
-### Real-time Point Balance
-
-- User-scoped balance (each user has their own balance)
-- Uses first (oldest) record only - prevents duplicates
-- Automatic duplicate cleanup
-- Balance only created when user updates it (not on fetch)
-- Optimistic UI updates for instant feedback
-- Automatic refetch after successful updates
-- Auth state synchronization (refetches on login/logout)
-
-### Daily Streak System
-
-- User-scoped daily claims (each user has their own streak)
-- Tracks last 7 days of claims
-- Uses first (oldest) record per date - prevents duplicates
-- Automatic duplicate cleanup
-- Calculates consecutive streak
-- Prevents duplicate daily claims
-- Visual calendar representation
-- Auth state synchronization
-- Resets when balance is reset to 0
-
-### Reward Redemption
-
-- User-scoped redemption tracking
-- Balance validation before redemption
-- Automatic point deduction
-- Transaction logging to `redeemed` table with `user_id`
-- Filterable by availability status
-
-### Referral System
-
-- Personal referral code generation (first 8 characters of user ID)
-- Referral code stored in `referral_codes` table
-- Automatic referral processing on page load with `?ref={code}` parameter
-- Prevents duplicate referral processing
-- Creates referral record in `referrals` table
+- Responsive design with Tailwind CSS
+- Loading states and skeletons
+- Success/error notifications via React Toastify
+- Modal system with portal rendering
+- Progress bars for milestone tracking
 - Social media sharing integration
-- Referral statistics display
-- Copy-to-clipboard functionality
 
-### Top Tool Claim System
+### Performance Optimizations
 
-- Email and file upload validation
-- Checks for existing claims (prevents duplicates)
-- Creates proof of claim in `top_tool_claims` table
-- Status tracking (pending, verified, rejected)
-- Automatically awards points after successful submission
-- User-scoped (one claim per user)
+- `useCallback` for event handlers
+- `useMemo` where appropriate
+- Optimistic updates for instant feedback
+- Efficient database queries with proper indexing
 
-### Share Stack System
+## Future Enhancements
 
-- Fetches user's stacks on "Share" button click
-- Stores stacks in AppContext for global access
-- Modal flow: NoStackModal → StackAvailModal → ShareOptionModal
-- User-scoped stack data
-- Social media sharing options
+- [ ] Real-time balance updates via Supabase Realtime
+- [ ] Email notifications for rewards
+- [ ] Leaderboard system
+- [ ] Achievement badges
+- [ ] Point transaction history
+- [ ] Admin dashboard for reward management
+- [ ] Multi-language support
+- [ ] Dark mode theme
 
-## 🔐 Environment Variables
+## Notes
 
-Required environment variables:
-
-- `VITE_FLOWVAHUB_SUPABASE_URL` - Supabase project URL
-- `VITE_FLOWVAHUB_ANON_KEY` - Supabase anonymous key
-
-## 📱 Responsive Design
-
-- **Mobile**: Hamburger menu, single column layouts
-- **Tablet**: Adaptive grid layouts
-- **Desktop**: Full sidebar, multi-column grids
-
-## 🎨 Component Library
-
-### Reusable Components
-
-- **Card**: Multiple variants (shadow, border, redeemable)
-- **Button**: Primary, secondary, tertiary, disabled variants
-- **Modal**: Reusable modal dialog with portal rendering
-  - Prevents flickering with proper z-index stacking
-  - Supports nested modals
-  - Body scroll prevention
-- **Tab**: Tab navigation component
-- **Skeleton**: Loading state component
-- **Header**: Page header with title and description
-- **Subheading**: Section subheading component
-- **Progress**: Progress bar component for milestone tracking
-
-## 🔄 State Management
-
-- **React Context API**: Global app state
-  - Sidebar open/close state
-  - Active navigation item
-  - User session/access token
-  - Stacks data (for sharing functionality)
-- **Custom Hooks**:
-  - `usePointBalance`: Point balance state and operations
-    - Fetches balance for authenticated user only
-    - Updates only the first (oldest) balance record
-    - Optimistic UI updates
-    - Automatic refetch after updates
-    - Auth state synchronization
-  - `useRewards`: Rewards configuration fetching
-- **Local State**: Component-level state with React hooks
-
-## 🚀 Future Enhancements
-
-Potential areas for expansion:
-
-- Full user authentication (email/password, OAuth)
-- User profiles and settings
-- Reward history and transaction logs
-- Leaderboards
-- Achievement badges
-- Notification system
-- Analytics dashboard
-- File upload to Supabase Storage for top tool claims
-- Email verification for top tool claims
-- Referral reward distribution improvements
-
-## 📄 License
-
-This project is private and proprietary.
-
-## 👥 Development
-
-Built with modern React patterns and best practices:
-
-- Functional components with hooks
-- TypeScript for type safety
-- Component composition
-- Custom hooks for reusable logic
-- Service layer for API interactions
-- User-scoped data architecture
-- Duplicate prevention and data integrity
-- Optimistic UI updates
-- Portal-based modal rendering
-- Auth state synchronization
-
----
-
-**Note**: This application requires a Supabase backend with the appropriate database tables and schema as described above.
+- The application uses anonymous authentication by default
+- All rewards are configurable via the `rewards` table
+- Referral links use `localhost:5173` (update for production)
+- File uploads in TopToolClaimModal are validated but not yet uploaded to storage
+- The application handles duplicate data gracefully with automatic cleanup

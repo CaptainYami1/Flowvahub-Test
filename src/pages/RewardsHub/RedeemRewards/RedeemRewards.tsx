@@ -47,7 +47,11 @@ export const RedeemRewards = () => {
       return redeemablesItems.filter((i) => i.points > balance);
     if (tab === "Coming soon")
       return redeemablesItems.filter((i) => i.points === 0);
-    return redeemablesItems;
+    return [...redeemablesItems].sort((a, b) => {
+    if (a.points === 0 && b.points !== 0) return 1; // a goes after b
+    if (a.points !== 0 && b.points === 0) return -1; // a goes before b
+    return 0; // keep original order otherwise
+  });
   };
 
   const handleRedeem = async (item: any) => {

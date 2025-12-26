@@ -61,14 +61,14 @@ export function ShareStack() {
           <Share2 />
         </div>
         <div>
-          <h3 className="font-semibold text-sm">Share Your Stack</h3>
-          <p className="text-xs text-gray-500">Earn +25 pts</p>
+          <h3 className="font-semibold text-black/88 text-sm font-ui">Share Your Stack</h3>
+          <p className="text-xs text-gray-500 font-ui">Earn +25 pts</p>
         </div>
       </CardHeader>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium text-sm">Share your tool stack</p>
+            <p className="font-medium text-sm text-black/88">Share your tool stack</p>
           </div>
           <button
             className="bg-[#eef2ff] hover:text-white hover:bg-primary text-primary py-2 px-4 rounded-full font-semibold text-sm transition-all duration-200 inline-flex items-center gap-2 border-0"

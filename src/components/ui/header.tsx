@@ -15,7 +15,7 @@ export const Header = ({ h1, p }: HeaderProps) => {
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <Menu size={28} className="lg:hidden" onClick={() => setOpenSidebar(true)}/>
-        <h1 className="text-xl md:text-2xl font-medium">{h1}</h1>
+        <h1 className="text-xl md:text-2xl font-normal">{h1}</h1>
       </div>
 
       <Notification/>

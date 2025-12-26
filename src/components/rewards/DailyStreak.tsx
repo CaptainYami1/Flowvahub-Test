@@ -241,8 +241,8 @@ export function DailyStreakCard() {
       <CardContent className="space-y-4 py-4">
         <div className="flex items-center gap-3">
           <div>
-            <p className="font-extrabold text-[36px] text-primary mb-2">
-              {currentStreak} Day{currentStreak !== 1 ? "s" : ""}
+            <p className="font-extrabold text-[36px] text-primary mb-2 font-ui">
+              {currentStreak} day{currentStreak !== 1 ? "s" : ""}
             </p>
           </div>
         </div>

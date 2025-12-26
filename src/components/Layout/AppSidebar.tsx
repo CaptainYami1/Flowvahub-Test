@@ -197,14 +197,14 @@ export const AppSidebar = () => {
             onClick={() => setOpenSidebar(false)}
           />
         </div>
-        <div className="">
+        <div className="w-full">
           {SidebarItems.map((item) => (
             <div
               key={item.name}
-              className={`flex w-[202.5px] items-center gap-3 px-4 p-3 mb-2 rounded-lg font-ui cursor-pointer  duration-200 transition-all
+              className={`flex w-[202.5px]  items-center gap-3 px-4 p-3 mb-2 rounded-lg font-ui cursor-pointer  duration-200 transition-all
                 ${
                   activeItem === item.name
-                    ? " bg-[rgba(144,19,254,0.2)] text-primary"
+                    ? " bg-[rgba(144,19,254,0.2)] text-primary w-full"
                     : "text-black hover:bg-[rgba(144,19,254,0.1)] hover:text-primary"
                 }`}
             >

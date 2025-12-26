@@ -10,10 +10,10 @@ export function ReferAndWin({}: ReferAndWinProps) {
         <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0 bg-[rgba(228,144,230,0.1)] text-primary">
           <Star />
         </div>
-        <h3 className="font-semibold text-sm">Refer and win 10,000 points!</h3>
+        <h3 className="font-semibold text-black/88 text-sm font-ui">Refer and win 10,000 points!</h3>
       </CardHeader>
       <CardContent className="p-4">
-        <p className="font-medium text-sm">
+        <p className=" text-sm font-medium text-black/88 font-ui">
           Invite 3 friends by Nov 20 and earn a chance to be one of 5 winners of{" "}
           <span className="text-primary">10,000 points</span>. Friends must
           complete onboarding to qualify.
