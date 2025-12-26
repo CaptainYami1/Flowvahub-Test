@@ -1,7 +1,5 @@
-import { AppContext } from "../../context/AppContext";
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -9,13 +7,11 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
-import { usePointBalance } from "../../hooks/usePointBalance";
+import { useAppContext } from "../../context/AppContext";
 import { useRewards } from "../../hooks/useRewards";
 
 export const ShareOptionModal = ({ isOpen, onClose }: any) => {
-  const context = useContext(AppContext)!;
-  const { stacks } = context;
-  const { updateBalance } = usePointBalance();
+  const {stacks, updateBalance, refetchBalance } = useAppContext();
   const { shareStackReward } = useRewards();
   const [mounted, setMounted] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -85,11 +81,16 @@ export const ShareOptionModal = ({ isOpen, onClose }: any) => {
 
   if (!mounted) return null;
 
-  const handleClaim=()=>{
-    if (shareStackReward !== null) {
-      updateBalance(shareStackReward);
-    }
-    onClose();
+  const handleClaim=async()=>{
+   
+   if (!shareStackReward) {
+    toast.error("Reward is not available.");
+    return;
+  }
+
+  updateBalance(shareStackReward); 
+  await refetchBalance();         
+  onClose();
   }
 
   const modalContent = (

@@ -5,12 +5,9 @@ import { TopSpotlightTool } from "../../../components/rewards/TopSpotlightTool";
 import { ReferAndWin } from "../../../components/rewards/ReferAndWin";
 import { ShareStack } from "../../../components/rewards/ShareStack";
 import { ReferAndEarn } from "../../../components/rewards/ReferAndEarn";
-import { usePointBalance } from "../../../hooks/usePointBalance";
-
+import { useAppContext } from "../../../context/AppContext";
 export const EarnPoint = () => {
-  const { pointBalance, pointBalanceLoading } =
-    usePointBalance();
-  
+   const { pointBalance, pointBalanceLoading } = useAppContext();
   return (
     <div className="flex flex-col">
       <div className="mt-4 flex flex-col">

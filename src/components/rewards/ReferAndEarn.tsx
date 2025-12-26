@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "../ui/card";
 import { useState, useEffect } from "react";
 import supabase from "../../services/config";
 import { toast } from "react-toastify";
-import { usePointBalance } from "../../hooks/usePointBalance";
+import { useAppContext } from "../../context/AppContext";
 import { useRewards } from "../../hooks/useRewards";
 
 export function ReferAndEarn() {
@@ -11,127 +11,115 @@ export function ReferAndEarn() {
   const [referralsCount, setReferralsCount] = useState<number>(0);
   const [pointsEarned, setPointsEarned] = useState<number>(0);
   const [copied, setCopied] = useState<boolean>(false);
-  const { updateBalance } = usePointBalance();
+  const { updateBalance, refetchBalance } = useAppContext();
   const { referralReward } = useRewards();
-  // Generate referral code from user ID and store it
   useEffect(() => {
     const setupReferralCode = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (session?.user) {
-        // Use first 8 characters of user ID as referral code
-        const code = session.user.id.substring(0, 8);
-        setReferralCode(code);
+      if (!session?.user) return;
 
-        // Store referral code mapping in database
-        const { error } = await supabase.from("referral_codes").upsert(
-          {
-            user_id: session.user.id,
-            code: code,
-          },
-          { onConflict: "user_id" }
-        );
+      const code = session.user.id.substring(0, 8); // First 8 chars of user ID
+      setReferralCode(code);
 
-        if (error) {
-          console.error("Error storing referral code:", error);
-        }
-      }
+      // Store the referral code in database
+      const { error } = await supabase
+        .from("referral_codes")
+        .upsert({ user_id: session.user.id, code }, { onConflict: "user_id" });
+
+      if (error) console.error("Error storing referral code:", error);
     };
+
     setupReferralCode();
   }, []);
 
-  // Fetch referral stats
   useEffect(() => {
     const fetchReferralStats = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (!session?.user) return;
+      if (!session?.user || !referralReward) return;
 
       const { data, error } = await supabase
-        .from("referral_codes")
+        .from("referrals")
         .select("id")
-        .eq("user_id", session.user.id);
+        .eq("referrer_id", session.user.id);
 
       if (!error && data) {
         setReferralsCount(data.length);
-        // Calculate points earned (referrals count * referral reward)
-        if (referralReward) {
-          setPointsEarned(data.length * referralReward);
-        }
+        setPointsEarned(data.length * referralReward);
       }
     };
 
-    if (referralCode) {
-      fetchReferralStats();
-    }
+    if (referralCode) fetchReferralStats();
   }, [referralCode, referralReward]);
 
   useEffect(() => {
     const processReferral = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const refCode = urlParams.get("ref");
-
-      if (!refCode) return;
+      if (!refCode || !referralReward) return;
 
       const {
         data: { session },
       } = await supabase.auth.getSession();
-
       if (!session?.user) return;
 
-      const { data: existingRef } = await supabase
+      const userId = session.user.id;
+
+      // Prevent duplicate referral for same user
+      const { data: existingReferral } = await supabase
         .from("referrals")
         .select("id")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
+        .eq("user_id", userId);
 
-      if (existingRef) return;
-      try {
-        const { data: referralMapping } = await supabase
-          .from("referral_codes")
-          .select("user_id")
-          .eq("code", refCode)
-          .single();
+      if (existingReferral && existingReferral?.length > 0) return;
 
-        if (referralMapping && referralMapping.user_id !== session.user.id) {
-          const referrerId = referralMapping.user_id;
+      // Find the referrer
+      const { data: referrerData, error: referrerError } = await supabase
+        .from("referral_codes")
+        .select("user_id")
+        .eq("code", refCode)
+        .single();
 
-          // Create referral record
-          const { error: refError } = await supabase.from("referrals").insert({
-            referrer_id: referrerId,
-            user_id: session.user.id,
-            referral_code: refCode,
-          });
+      if (referrerError || !referrerData) return;
 
-          if (!refError) {
-            if (referralReward !== null) {
-              updateBalance(referralReward);
-            }
+      const referrerId = referrerData.user_id;
 
-            toast.success("Referral processed! Points added to referrer.");
-          }
-        }
-      } catch (error) {
-        console.error("Error processing referral:", error);
+
+      // Add points to the referrer
+      await updateBalance(referralReward);
+      await refetchBalance();
+
+      // Insert referral record
+      const { error: insertError } = await supabase.from("referrals").insert({
+        referrer_id: referrerId,
+        user_id: userId,
+        referral_code: refCode,
+      });
+
+      if (insertError) {
+        console.error("Failed to insert referral:", insertError);
+        return;
       }
+
+      toast.success("Referral processed! Points added to referrer.");
     };
 
-    if (referralReward) {
-      processReferral();
-    }
-  }, [referralReward]);
+    processReferral();
+  }, [referralReward, updateBalance, refetchBalance]);
 
+  // Step 4: Copy referral link
   const handleCopy = async () => {
-    const referralLink = `localhost:5173/?ref=${referralCode}`;
+    const referralLink = `http://localhost:5173/?ref=${referralCode}`;
     try {
       await navigator.clipboard.writeText(referralLink);
       setCopied(true);
-      toast.success("Referral link copied to clipboard!");
+      toast.success("Referral link copied!");
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      toast.error("Failed to copy link");
+    } catch {
+      toast.error("Failed to copy referral link.");
     }
   };
 

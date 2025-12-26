@@ -9,11 +9,11 @@ import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import supabase from "../../services/config";
 import { useRewards } from "../../hooks/useRewards";
-import { usePointBalance } from "../../hooks/usePointBalance";
+import { useAppContext } from "../../context/AppContext";
 
 export const TopToolClaimModal = ({ isOpen, onClose, submitClaim }: any) => {
   const { topToolReward } = useRewards();
-  const { updateBalance } = usePointBalance();
+  const { updateBalance, refetchBalance } = useAppContext();
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -105,7 +105,6 @@ export const TopToolClaimModal = ({ isOpen, onClose, submitClaim }: any) => {
       return;
     }
 
-  
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -118,7 +117,7 @@ export const TopToolClaimModal = ({ isOpen, onClose, submitClaim }: any) => {
       .from("top_tool_claims")
       .select("id")
       .eq("user_id", user.id)
-      .order("id", { ascending: true }); 
+      .order("id", { ascending: true });
 
     if (checkError) {
       console.error("Error checking existing claim:", checkError);
@@ -161,10 +160,16 @@ export const TopToolClaimModal = ({ isOpen, onClose, submitClaim }: any) => {
     setFile(null);
     setFileName("");
     onClose();
-    if (topToolReward !== null) {
+  
+    if (!topToolReward) {
+        toast.error("Reward is not available.");
+        return;
+      }
+    
       updateBalance(topToolReward);
-      toast.success("Points have been added to your balance!");
-    }
+      toast.success("Points have been added to your balance!"); 
+      await refetchBalance();         
+      onClose();
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {

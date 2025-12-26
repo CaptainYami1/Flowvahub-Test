@@ -6,9 +6,8 @@ import { useEffect, useState, useCallback } from "react";
 import supabase from "../../services/config";
 import { toast } from "react-toastify";
 import { DailyClaimSuccessModal } from "./DailyClaimSuccessModal";
-import { usePointBalance } from "../../hooks/usePointBalance";
 import { useRewards } from "../../hooks/useRewards";
-
+import { useAppContext } from "../../context/AppContext";
 interface Claim {
   claim_date: string;
 }
@@ -19,7 +18,7 @@ export function DailyStreakCard() {
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
-  const { updateBalance } = usePointBalance();
+  const { updateBalance, refetchBalance } = useAppContext();
   const { dailyReward } = useRewards();
   const today = new Date().toISOString().split("T")[0];
   const todayDayName = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
@@ -42,8 +41,6 @@ export function DailyStreakCard() {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
 
-    // Fetch ALL claims for this user to handle duplicates (same pattern as point balance)
-    // Order by id ascending to get the FIRST (oldest) record for each date
     const { data: allClaims, error: fetchError } = await supabase
       .from("claim_days")
       .select("id, claim_date")
@@ -72,13 +69,11 @@ export function DailyStreakCard() {
       const claimDate = new Date(claim.claim_date).toISOString().split("T")[0];
 
       if (!uniqueClaimsMap.has(claimDate)) {
-        // First occurrence of this date - keep it (this is the oldest due to ascending id order)
         uniqueClaimsMap.set(claimDate, {
           claim: { claim_date: claim.claim_date },
           id: claim.id,
         });
       } else {
-        // Duplicate date - mark for deletion (keep the first/oldest one)
         duplicateIds.push(claim.id);
       }
     });
@@ -121,11 +116,12 @@ export function DailyStreakCard() {
 
     if (existingClaims && existingClaims.length > 0) {
       toast.error("You have already claimed today");
+      console.log(existingClaims)
       await fetchClaims(); // Refetch to update UI
       return;
     }
 
-    // Insert the claim
+   
     const { error } = await supabase.from("claim_days").upsert({
       user_id: user.id,
       claim_date: today,
@@ -144,12 +140,11 @@ export function DailyStreakCard() {
       return;
     }
 
-    // Success - update balance and show modal
-    if (dailyReward !== null) {
-      updateBalance(dailyReward);
-    }
-    await fetchClaims(); // Refetch to update UI
-    setOpenSuccessModal(true);
+     updateBalance(dailyReward);
+    await refetchBalance();   
+
+    await fetchClaims();  
+     setOpenSuccessModal(true);
   };
   useEffect(() => {
     let mounted = true;

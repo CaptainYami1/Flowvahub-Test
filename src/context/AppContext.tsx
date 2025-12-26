@@ -1,5 +1,6 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { createContext } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
+import { usePointBalance } from "../hooks/usePointBalance";
 
 export interface Stack {
   id: number;
@@ -17,34 +18,32 @@ type AppContextType = {
   setSession: (session: unknown) => void;
   stacks: Stack[] | null;
   setStacks: (stacks: Stack[] | null) => void;
+  pointBalance: number | null;
+  pointBalanceLoading: boolean;
+  updateBalance: (amount: number) => Promise<void>;
+  refetchBalance: () => Promise<void>;
 };
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
-type AppProviderProps = {
-  children: ReactNode;
-};
+type AppProviderProps = { children: ReactNode };
+
 export function AppProvider({ children }: AppProviderProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const [activeItem, setActiveItem] = useState("Rewards Hub");
   const [session, setSession] = useState<unknown>(undefined);
   const [stacks, setStacks] = useState<Stack[] | null>(null);
+
+  const { pointBalance, pointBalanceLoading, updateBalance, refetch } = usePointBalance();
+
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
-
     const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
-      if (e.matches) {
-        setOpenSidebar(false);
-      }
+      if (e.matches) setOpenSidebar(false);
     };
-
     handleChange(mediaQuery);
-
     mediaQuery.addEventListener("change", handleChange);
-
-    return () => {
-      mediaQuery.removeEventListener("change", handleChange);
-    };
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   return (
@@ -58,9 +57,19 @@ export function AppProvider({ children }: AppProviderProps) {
         setSession,
         stacks,
         setStacks,
+        pointBalance,
+        pointBalanceLoading,
+        updateBalance,
+        refetchBalance: refetch,
       }}
     >
       {children}
     </AppContext.Provider>
   );
 }
+
+export const useAppContext = () => {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error("useAppContext must be used within AppProvider");
+  return ctx;
+};

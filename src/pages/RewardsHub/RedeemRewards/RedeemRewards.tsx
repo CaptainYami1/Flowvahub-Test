@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Tab } from "../../../components/ui/tab";
 import { Subheading } from "../../../components/ui/subheading";
 import { Redeemables } from "../../../components/rewards/Redeemables";
-import { usePointBalance } from "../../../hooks/usePointBalance";
+import { useAppContext } from "../../../context/AppContext";
 import supabase from "../../../services/config";
 import { toast } from "react-toastify";
 import { Skeleton } from "../../../components/ui/skeleton";
@@ -16,7 +16,7 @@ interface RedeemableItem {
 }
 
 export const RedeemRewards = () => {
-  const { pointBalance, updateBalance } = usePointBalance();
+  const { pointBalance, updateBalance, refetchBalance } = useAppContext();
   const [redeemablesItems, setRedeemablesItems] = useState<RedeemableItem[]>(
     []
   );
@@ -75,7 +75,10 @@ export const RedeemRewards = () => {
       console.log(error);
       return;
     }
+
     updateBalance(-item.points);
+    await refetchBalance();
+
     setRedeeming(null);
     toast.success(`Successfully redeemed ${item.name}`);
   };
