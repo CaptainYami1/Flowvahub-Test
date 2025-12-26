@@ -188,7 +188,7 @@ export const AppSidebar = () => {
           : "hidden lg:block lg:bg-transparent lg:z-0 lg:relative"
       }
     >
-      <div className="px-4 py-3 flex flex-col bg-white  max-w-72 overflow-x-hidden  h-screen shadow-md border-r border-black/10 text-black font-ui">
+      <div className="px-4 py-3 flex flex-col bg-white  max-w-72 overflow-x-hidden  h-full shadow-md border-r border-black/10 text-black font-ui">
         <div className="flex justify-between p-3 ">
           <img src={Logo} alt="Flowva Logo" className="h-15" />
           <X
